@@ -1,0 +1,181 @@
+version: '3.9'
+
+services:
+  # PostgreSQL Database (local development only - production uses Supabase)
+  postgres:
+    image: postgres:16-alpine
+    container_name: hda_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-localpassword}
+      POSTGRES_DB: hda_translation
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/supabase/migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hda_network
+
+  # Redis for caching and Celery broker
+  redis:
+    image: redis:7-alpine
+    container_name: hda_redis
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-localpassword}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hda_network
+
+  # Backend API Service
+  backend:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/backend.Dockerfile
+    container_name: hda_backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # Database
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:localpassword@postgres:5432/hda_translation}
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_KEY: ${SUPABASE_KEY}
+
+      # Redis
+      REDIS_URL: ${REDIS_URL:-redis://:localpassword@redis:6379/0}
+
+      # AI Services
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      VERTEX_AI_PROJECT: ${VERTEX_AI_PROJECT}
+
+      # JWT & Security
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-development-secret-key-change-in-production}
+      JWT_ALGORITHM: HS256
+
+      # Environment
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DEBUG: ${DEBUG:-true}
+
+      # AWS S3 (or DigitalOcean Spaces)
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
+      S3_ENDPOINT_URL: ${S3_ENDPOINT_URL}  # For DigitalOcean Spaces
+    volumes:
+      - ./backend:/app
+      - ./shared:/app/shared
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "
+        alembic upgrade head &&
+        uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+      "
+    networks:
+      - hda_network
+
+  # Celery Worker for background tasks
+  celery_worker:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/worker.Dockerfile
+    container_name: hda_worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # Same environment variables as backend
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:localpassword@postgres:5432/hda_translation}
+      REDIS_URL: ${REDIS_URL:-redis://:localpassword@redis:6379/0}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      VERTEX_AI_PROJECT: ${VERTEX_AI_PROJECT}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
+      S3_ENDPOINT_URL: ${S3_ENDPOINT_URL}
+    volumes:
+      - ./backend:/app
+      - ./shared:/app/shared
+      - ./temp:/app/temp  # For temporary file processing
+    command: celery -A workers.celery_app worker --loglevel=info
+    networks:
+      - hda_network
+
+  # Celery Beat for scheduled tasks
+  celery_beat:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/worker.Dockerfile
+    container_name: hda_beat
+    depends_on:
+      - redis
+    environment:
+      REDIS_URL: ${REDIS_URL:-redis://:localpassword@redis:6379/0}
+    volumes:
+      - ./backend:/app
+    command: celery -A workers.celery_app beat --loglevel=info
+    networks:
+      - hda_network
+
+  # Flower for Celery monitoring (development only)
+  flower:
+    image: mher/flower:latest
+    container_name: hda_flower
+    depends_on:
+      - redis
+    environment:
+      CELERY_BROKER_URL: ${REDIS_URL:-redis://:localpassword@redis:6379/0}
+      FLOWER_PORT: 5555
+      FLOWER_BASIC_AUTH: ${FLOWER_AUTH:-admin:admin}
+    ports:
+      - "5555:5555"
+    networks:
+      - hda_network
+
+  # Frontend React Application
+  frontend:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/frontend.Dockerfile
+      args:
+        VITE_SUPABASE_URL: ${SUPABASE_URL}
+        VITE_SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+        VITE_API_URL: ${API_URL:-http://localhost:8000}
+    container_name: hda_frontend
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"  # If SSL is configured
+    volumes:
+      - ./infrastructure/docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infrastructure/docker/default.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - hda_network
+
+# Volumes for data persistence
+volumes:
+  postgres_data:
+  redis_data:
+
+# Network for service communication
+networks:
+  hda_network:
+    driver: bridge

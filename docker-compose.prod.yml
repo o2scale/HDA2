@@ -1,0 +1,168 @@
+version: '3.9'
+
+# Production Docker Compose for DigitalOcean Deployment
+# This configuration assumes:
+# - Supabase Cloud for database (no local PostgreSQL)
+# - DigitalOcean Spaces for S3-compatible storage
+# - External Redis (Upstash or DigitalOcean Managed Redis)
+
+services:
+  # Backend API Service
+  backend:
+    image: ${DOCKER_REGISTRY}/hda-backend:${VERSION:-latest}
+    container_name: hda_backend
+    restart: unless-stopped
+    environment:
+      # Supabase Configuration
+      DATABASE_URL: ${DATABASE_URL}
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_KEY: ${SUPABASE_KEY}
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY}
+
+      # Redis (Upstash or Managed)
+      REDIS_URL: ${REDIS_URL}
+
+      # AI Services
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      VERTEX_AI_PROJECT: ${VERTEX_AI_PROJECT}
+
+      # JWT & Security
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_ALGORITHM: HS256
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+
+      # Environment
+      ENVIRONMENT: production
+      DEBUG: false
+      LOG_LEVEL: info
+
+      # DigitalOcean Spaces (S3-compatible)
+      AWS_ACCESS_KEY_ID: ${DO_SPACES_KEY}
+      AWS_SECRET_ACCESS_KEY: ${DO_SPACES_SECRET}
+      S3_BUCKET_NAME: ${DO_SPACES_BUCKET}
+      S3_ENDPOINT_URL: https://${DO_SPACES_REGION}.digitaloceanspaces.com
+      S3_REGION: ${DO_SPACES_REGION}
+
+      # Monitoring
+      SENTRY_DSN: ${SENTRY_DSN}
+    ports:
+      - "8000:8000"
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - hda_network
+
+  # Celery Worker for background tasks
+  celery_worker:
+    image: ${DOCKER_REGISTRY}/hda-worker:${VERSION:-latest}
+    container_name: hda_worker
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_KEY: ${SUPABASE_KEY}
+      REDIS_URL: ${REDIS_URL}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      VERTEX_AI_PROJECT: ${VERTEX_AI_PROJECT}
+      AWS_ACCESS_KEY_ID: ${DO_SPACES_KEY}
+      AWS_SECRET_ACCESS_KEY: ${DO_SPACES_SECRET}
+      S3_BUCKET_NAME: ${DO_SPACES_BUCKET}
+      S3_ENDPOINT_URL: https://${DO_SPACES_REGION}.digitaloceanspaces.com
+      ENVIRONMENT: production
+      SENTRY_DSN: ${SENTRY_DSN}
+      C_FORCE_ROOT: true  # Allow running as root in container
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+    command: celery -A workers.celery_app worker --loglevel=info --concurrency=4
+    networks:
+      - hda_network
+
+  # Celery Beat for scheduled tasks
+  celery_beat:
+    image: ${DOCKER_REGISTRY}/hda-worker:${VERSION:-latest}
+    container_name: hda_beat
+    restart: unless-stopped
+    environment:
+      REDIS_URL: ${REDIS_URL}
+      DATABASE_URL: ${DATABASE_URL}
+      ENVIRONMENT: production
+      SENTRY_DSN: ${SENTRY_DSN}
+    deploy:
+      replicas: 1  # Only one beat scheduler
+    command: celery -A workers.celery_app beat --loglevel=info
+    networks:
+      - hda_network
+
+  # Frontend React Application with nginx
+  frontend:
+    image: ${DOCKER_REGISTRY}/hda-frontend:${VERSION:-latest}
+    container_name: hda_frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./ssl:/etc/nginx/ssl:ro  # SSL certificates
+      - ./nginx-prod.conf:/etc/nginx/conf.d/default.conf:ro
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - hda_network
+
+  # nginx Load Balancer (optional - can use DigitalOcean Load Balancer instead)
+  nginx:
+    image: nginx:alpine
+    container_name: hda_nginx
+    restart: unless-stopped
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./infrastructure/nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./infrastructure/nginx/ssl:/etc/nginx/ssl:ro
+      - ./infrastructure/nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - hda_network
+
+# Production network
+networks:
+  hda_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

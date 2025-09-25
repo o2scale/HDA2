@@ -1,0 +1,379 @@
+# ============================================
+# Python / FastAPI Backend
+# ============================================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+pip-wheel-metadata/
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+.env
+virtualenv/
+.virtualenv
+backend/venv/
+backend/.venv
+
+# FastAPI specific
+*.db
+*.sqlite
+*.sqlite3
+instance/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+celerybeat-schedule.db
+
+# ============================================
+# Node.js / React Frontend
+# ============================================
+
+# Dependencies
+node_modules/
+frontend/node_modules/
+/.pnp
+.pnp.js
+
+# Testing
+/coverage
+frontend/coverage
+
+# Production build
+/build
+frontend/build
+frontend/dist
+dist/
+
+# Misc React
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Package manager locks (keep one, ignore others)
+# Keep package-lock.json, ignore others
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
+
+# ============================================
+# Environment Variables & Secrets
+# ============================================
+
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Google Cloud / Vertex AI credentials
+*-credentials.json
+*-service-account.json
+vertex-ai-credentials.json
+gcp-credentials.json
+service-account-*.json
+
+# API Keys
+*.key
+*.pem
+*.cert
+
+# ============================================
+# Database
+# ============================================
+
+# PostgreSQL
+*.sql
+!migrations/*.sql
+!schema/*.sql
+postgres-data/
+
+# Redis
+dump.rdb
+redis-data/
+
+# Supabase
+.supabase/
+!.supabase/config.toml
+
+# ============================================
+# IDE & Editors
+# ============================================
+
+# VS Code
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json.template
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Cursor AI
+.cursor/
+
+# Windsurf
+.windsurf/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# ============================================
+# Operating System Files
+# ============================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+.directory
+.Trash-*
+.nfs*
+
+# ============================================
+# Project Specific
+# ============================================
+
+# Uploaded documents and processing files
+uploads/
+processed/
+temp/
+tmp/
+media/
+static/collected/
+
+# OCR and Translation outputs
+ocr-output/
+translation-output/
+exports/
+
+# Logs
+logs/
+*.log
+*.log.*
+error.log
+access.log
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+
+# AI Development Tools
+.claude/
+.claude
+CLAUDE.md
+.ai/
+*.stats.md
+.gemini
+.iflow
+
+# BMad specific (keep for now as they're framework files)
+# .bmad-core/
+# .bmad-creator-tools/
+# .bmad-infrastructure-devops/
+
+# Test artifacts
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Documentation build
+docs/_build/
+docs/.doctrees/
+site/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+*.tfplan
+*.tfvars
+!terraform.tfvars.example
+
+# Docker
+docker-compose.override.yml
+.dockerignore
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Performance profiling
+*.prof
+*.lprof
+
+# Translation memory cache
+.translation-cache/
+.tm-cache/
+
+# Batch processing temporary files
+batch-temp/
+queue-temp/
+
+# Export temporary files
+export-temp/
+pdf-temp/
+
+# ============================================
+# Security - NEVER commit these
+# ============================================
+
+# Private keys
+*.key
+*.pem
+id_rsa
+id_rsa.pub
+id_dsa
+id_dsa.pub
+id_ecdsa
+id_ecdsa.pub
+id_ed25519
+id_ed25519.pub
+
+# AWS
+.aws/
+aws-exports.js
+
+# Certificates
+*.crt
+*.cer
+*.der
+*.p7b
+*.p7c
+*.p12
+*.pfx
+
+# OAuth tokens
+tokens/
+.tokens/
+refresh_token.json
+access_token.json
+
+# ============================================
+# Keep these files (exceptions)
+# ============================================
+
+# Keep important config templates
+!.env.example
+!.env.template
+!docker-compose.yml
+!docker-compose.example.yml
+!requirements.txt
+!requirements-dev.txt
+!package.json
+!package-lock.json
+!tsconfig.json
+!.eslintrc.js
+!.prettierrc.example
+
+# Keep docs
+!README.md
+!docs/
+docs/prd/
+docs/architecture/
+!docs/prd.md
+!docs/architecture.md
+!docs/front-end-spec.md
+
+# Keep CI/CD
+!.github/
+!.gitlab-ci.yml
+!Jenkinsfile
+
+# Keep project structure
+!backend/
+!frontend/
+!shared/
+!infrastructure/
+!scripts/
