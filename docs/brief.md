@@ -1,12 +1,16 @@
-# Project Brief: Enterprise Translation & Transcription Platform (HDA Implementation)
+# Project Brief: Enterprise Translation, Transcription & Document Processing Platform (HDA Implementation)
+
+**Last Updated:** September 25, 2025
+**Version:** 2.0
+**Status:** In Development - Epic 1 Stories Created
 
 ## Executive Summary
 
-This project brief outlines an Enterprise Translation & Transcription Platform designed as a comprehensive SaaS solution for organizations requiring industrial-scale content processing and multilingual accessibility. The platform addresses the universal challenge faced by educational institutions, religious organizations, corporations, and content publishers who need to transform vast repositories of multimedia content—including documents, audio lectures, video content, manuscripts, and e-books—into accessible, multilingual resources.
+This project brief outlines an Enterprise Translation, Transcription & Document Processing Platform designed as a comprehensive SaaS solution for organizations requiring industrial-scale content processing and multilingual accessibility. The platform addresses the universal challenge faced by educational institutions, religious organizations, corporations, and content publishers who need to transform vast repositories of content—including PDFs with embedded text, scanned documents, images with text, manuscripts, and e-books—into accessible, multilingual resources through advanced text extraction and translation capabilities.
 
 The platform operates on two distinct business models: (1) **White-label Enterprise Licensing** for organizations requiring on-premise deployment with full customization and control, and (2) **Cloud SaaS Subscriptions** for smaller organizations with pay-per-use API pricing and managed infrastructure. The Hare Krishna Mandir Digital Archive (HDA) serves as the flagship implementation, validating the platform's capabilities with a 2TB content repository requiring processing into 6 languages.
 
-The platform's core value proposition combines three revenue-generating capabilities: (1) Industrial-scale content processing through a vendor-agnostic AI marketplace—organizations can use their own API keys or purchase through our aggregated services with margin markup, (2) A sophisticated workflow pipeline with customizable quality assurance stages ensuring content accuracy across industries, and (3) A complete media management system with white-label customization, supporting categorization, tagging, and AI-powered summarization. The architecture supports multi-tenancy, allowing hundreds of organizations to operate isolated instances while sharing infrastructure costs. This positions the platform not just as a translation tool, but as an enterprise-grade content transformation engine capable of serving diverse industries from religious institutions to educational publishers to multinational corporations.
+The platform's core value proposition combines three revenue-generating capabilities: (1) Industrial-scale text extraction and processing through Vertex AI Gemini 2.5 Pro (1M input/65K output tokens) with fallback options—organizations can use their own API keys or purchase through our aggregated services with 20-30% margin markup, (2) A sophisticated two-stage progressive workflow (Source Text Editor → Translation Editor) with customizable quality assurance stages ensuring content accuracy across industries, and (3) A complete document processing system with white-label customization, supporting batch processing, structure preservation, and real-time progress tracking. The architecture leverages Supabase for database, auth, and storage, with multi-tenant isolation allowing hundreds of organizations to operate securely while sharing infrastructure costs. This positions the platform not just as a translation tool, but as an enterprise-grade content transformation engine capable of serving diverse industries from religious institutions to educational publishers to multinational corporations.
 
 ## Business Model & Monetization
 
@@ -122,15 +126,19 @@ The platform's first implementation for Hare Krishna Mandir validates the archit
 
 ## MVP Scope
 
-### Core Features (Must Have)
+### Core Features (Must Have) - Epic 1 Implementation
 
-**E-book Translation Module (Priority 1)**
-- **Media Management Interface:** Upload, categorize, and tag PDF files with metadata
-- **PDF Upload & Processing:** Direct upload of PDF files through the media management interface with drag-and-drop support
-- **Text Extraction:** Accurate extraction of text from PDFs including proper handling of formatting, chapters, and sections
-- **Multi-Language Translation:** Support for 6 initial target languages (English, Hindi, Marathi, Bengali, Gujarati, German) using Google Vertex AI
-- **Translation Editor:** Interface for volunteers to review and edit AI translations with side-by-side source/target view
-- **Export Functionality:** Generate translated PDFs maintaining original formatting where possible
+**Document Processing Pipeline (10 Stories Defined)**
+- **Story 1.0 - Vertex AI Setup:** GCP account configuration, API enablement, service accounts (PREREQUISITE)
+- **Story 1.1 - Infrastructure Foundation:** Monorepo setup, Docker environment (partially complete by Alex), CI/CD pipelines, Supabase provisioning
+- **Story 1.2 - Upload & Storage:** Drag-and-drop interface for PDF/JPG/PNG/DOCX, S3 storage with tenant isolation, malware scanning
+- **Story 1.3 - Text Extraction Integration:** Vertex AI Gemini 2.5 Pro integration for >95% printed text accuracy, >85% handwritten, structure preservation
+- **Story 1.4 - Translation Pipeline:** 6 languages (English, Hindi, Marathi, Bengali, Gujarati, German) with glossary management, conceptual accuracy
+- **Story 1.5 - Translation Editor:** Two-panel progressive editor (Source Text Editor → Translation Editor) with synchronized scrolling, auto-save
+- **Story 1.6 - Export System:** PDF/DOCX/TXT export with structure preservation, page range selection, shareable links
+- **Story 1.7 - User Management:** Supabase Auth integration, RBAC (Admin/Editor/Viewer), audit logging
+- **Story 1.8 - Processing Dashboard:** Real-time WebSocket updates, queue visualization, batch operations
+- **Story 1.9 - Public Viewer:** Content sharing with password protection, mobile-optimized reading experience
 
 **Essential Infrastructure**
 - **Media Management Module:** File upload interface with categorization, tagging, and metadata
@@ -140,22 +148,25 @@ The platform's first implementation for Hare Krishna Mandir validates the archit
 - **Basic Admin Dashboard:** View e-book processing queue, monitor translation progress
 - **API Endpoints:** RESTful APIs for retrieving verified translations
 
-### Out of Scope for MVP
-- Audio/video transcription features (existing system continues to handle)
-- OCR capabilities for scanned documents
-- Advanced AI summarization
-- Multiple AI provider support (Vertex AI only initially)
-- Complex categorization and tagging systems
-- Detailed analytics and reporting
-- Mobile applications
-- Batch processing of multiple PDFs simultaneously
+### Out of Scope for Epic 1
+- Audio/video transcription features (Epic 2)
+- Advanced AI summarization capabilities (Epic 3)
+- Multiple AI provider marketplace (Epic 4 - currently Vertex AI only)
+- White-label customization system (Epic 3)
+- Complex billing and subscription management (Epic 3)
+- Native mobile applications (Future)
+- Fine-tuned AI models (Epic 4)
+- Advanced analytics and reporting (Epic 3)
 
-### MVP Success Criteria
-- Successfully translate 10 core religious e-books into 6 languages (English, Hindi, Marathi, Bengali, Gujarati, German)
-- Achieve 95%+ translation accuracy as validated by disciples
-- Process a single e-book (100-200 pages) within 2 hours
-- Support 10 concurrent volunteer reviewers
-- Zero data loss during MongoDB to PostgreSQL migration
+### Epic 1 Success Criteria
+- Successfully extract text from PDFs with >95% accuracy for printed content
+- Translate documents into 6 languages maintaining conceptual accuracy
+- Process documents at 30-60s per page for text extraction
+- Support batch processing of 10-100 pages based on token limits
+- Implement two-stage progressive editor workflow
+- Deploy to Supabase with multi-tenant isolation
+- Complete all 10 Epic 1 stories with passing acceptance criteria
+- Support real-time progress tracking via WebSocket
 
 ## Post-MVP Vision
 
@@ -199,23 +210,26 @@ The platform's first implementation for Hare Krishna Mandir validates the archit
   - Translation API response: <5 seconds for 1000 words
   - Dashboard load time: <3 seconds
 
-### Technology Preferences
+### Technology Stack (Finalized September 2025)
 - **Frontend:**
-  - Framework: React with TypeScript
-  - UI Components: Material-UI or Tailwind CSS
-  - State Management: Context API or Redux/Zustand
+  - Framework: React 19.1.0 with TypeScript 5.6.2
+  - Build Tool: Vite 5.4.8 for faster development
+  - UI Components: Tailwind CSS 3.4.13 with shadcn/ui
+  - State Management: Zustand 5.0.1 + TanStack Query 5.59.0
 - **Backend:**
-  - Language: Python 3.11+
-  - Framework: FastAPI or Django REST Framework
-  - Task Queue: Celery with Redis for async PDF processing
-- **Database:**
-  - Primary: Supabase (PostgreSQL with vector database capabilities for future RAG integration)
-  - Cache: Redis for session management and job queues
-  - Migration: Custom scripts to move MongoDB data to PostgreSQL
-- **Hosting/Infrastructure:**
-  - Storage: AWS S3 with CloudFront CDN for media delivery
-  - Compute: AWS EC2/Lambda or Google Cloud Run
-  - CDN: CloudFlare for static assets
+  - Language: Python 3.13.7 with JIT compiler
+  - Framework: FastAPI 0.117.1 for high performance async
+  - Task Queue: Celery 5.4.0 with Redis 7.4.0
+  - AI Integration: google-cloud-aiplatform 1.78.0 (NOT standard Gemini SDK)
+- **Database & Infrastructure:**
+  - Primary: Supabase (PostgreSQL 16.4 with pgvector extension)
+  - Cache: Upstash Redis for serverless caching
+  - Storage: Supabase Storage + S3 overflow
+  - Deployment: Vercel (frontend) + Railway/Render (backend)
+- **Development Environment:**
+  - Docker Compose setup by Alex (COMPLETED)
+  - Monorepo structure with shared types
+  - GitHub Actions for CI/CD
 
 ### Architecture Considerations
 - **Repository Structure:**
@@ -277,15 +291,15 @@ The platform's first implementation for Hare Krishna Mandir validates the archit
 
 ## Risks & Open Questions
 
-### Key Risks
-- **PDF Complexity:** Complex PDF layouts, tables, or embedded images may not extract/translate properly, requiring manual intervention
-- **Translation Quality:** Religious texts require nuanced understanding; AI may misinterpret theological concepts or sacred terminology
-- **Data Migration Failure:** MongoDB to PostgreSQL migration could result in data corruption or loss of existing transcriptions
-- **Storage Costs:** AWS S3 costs could escalate with 2TB+ of data and high bandwidth usage
-- **Volunteer Adoption:** Disciples may resist new system if significantly different from current workflows, slowing verification pipeline
-- **Technical Debt:** Rebuilding while maintaining production system creates risk of feature parity gaps and user dissatisfaction
-- **Cost Overruns:** Google Vertex AI pricing at scale could exceed budget expectations for large-scale translation operations
-- **Concept Preservation:** Risk of losing core religious concepts during translation, not just word accuracy but philosophical meaning
+### Key Risks (Assessed by Quinn - QA)
+- **Text Extraction Complexity:** Mixed content PDFs (scanned + digital) may require fallback to AWS Textract
+- **Token Limits:** Vertex AI's 1M input tokens may require intelligent batching for large documents
+- **Translation Quality:** Religious texts require specialized glossaries and untranslatable term management
+- **Infrastructure Costs:** Vertex AI pricing ($1.25-$2.50/1M input, $10/1M output) needs careful monitoring
+- **Multi-Tenant Security:** Data isolation critical with Supabase Row Level Security (RLS)
+- **Real-time Performance:** WebSocket connections for progress tracking may face scaling challenges
+- **Dependency Compatibility:** React 19.1.0 is cutting-edge, may have compatibility issues
+- **Development Complexity:** Monorepo with Python + TypeScript requires careful tooling setup
 
 ### Open Questions [RESOLVED]
 - **Target Languages:** Initial support for English, Hindi, Marathi, Bengali, Gujarati, and German (architecture must support unlimited future languages)
@@ -334,6 +348,52 @@ The platform's first implementation for Hare Krishna Mandir validates the archit
 - Integration patterns with existing Disciple Login authentication system
 - Legal/compliance requirements for storing religious texts across jurisdictions
 
+## Development Progress Summary
+
+### BMad Agent Contributions
+
+**Documentation Phase (Completed):**
+- **Mary (Analyst):** Created initial project brief, market analysis, and problem statement
+- **John (PM):** Developed comprehensive PRD with 16 FRs and 12 NFRs, created Epic structure
+- **Sally (UX Expert):** Designed front-end specifications with two-panel progressive editor
+- **Winston (Architect):** Defined technical architecture, selected tech stack, created data models
+- **Bob (Scrum Master):** Created 10 detailed user stories for Epic 1 with acceptance criteria
+
+**Infrastructure Phase (In Progress):**
+- **Alex (Infrastructure):** Completed Docker Compose setup with 7 services, created Dockerfiles
+- **Quinn (QA):** Performed risk assessment and created 190+ test scenarios
+- **Sarah (PO):** Validated all stories and approved for development
+
+### Key Architectural Decisions
+
+1. **Text Extraction Focus:** Replaced "OCR" terminology with "text extraction" to avoid confusion
+2. **Vertex AI Gemini 2.5 Pro:** Selected for superior token limits (1M input/65K output)
+3. **Two-Panel Editor:** Progressive workflow (Source Text Editor → Translation Editor)
+4. **Supabase Platform:** All-in-one solution for database, auth, storage, and real-time
+5. **Monorepo Structure:** Enables shared types and atomic commits across stack
+
+### Development Sequence
+
+```
+Phase 1: Foundation (Current)
+├── Story 1.0: Vertex AI Setup [PREREQUISITE]
+└── Story 1.1: Infrastructure [FOUNDATION]
+
+Phase 2: Core Features (Next)
+├── Parallel Track 1:
+│   ├── Story 1.2: Upload & Storage
+│   ├── Story 1.3: Text Extraction
+│   └── Story 1.4: Translation Pipeline
+└── Parallel Track 2:
+    ├── Story 1.7: User Management
+    └── Story 1.8: Dashboard
+
+Phase 3: Integration
+├── Story 1.5: Editor Interface
+├── Story 1.6: Export System
+└── Story 1.9: Public Viewer
+```
+
 ## Appendices
 
 ### A. Related Documentation
@@ -355,12 +415,24 @@ The platform's first implementation for Hare Krishna Mandir validates the archit
 
 ## Next Steps
 
-### Immediate Actions
-1. **Finalize Architecture with Winston** - Review technical decisions with architect agent
-2. **Create Detailed PRD** - Handoff to PM agent for comprehensive requirements
-3. **Design System Architecture** - Document detailed technical architecture
-4. **Set Up Development Environment** - Initialize repositories and CI/CD pipelines
-5. **Begin PDF Processing Spike** - Research and prototype PDF extraction approaches
+### Current Status & Next Steps
+
+**Completed Work:**
+1. ✅ **PRD Created** - Comprehensive requirements with 16 functional requirements
+2. ✅ **Architecture Documented** - Full technical architecture with tech stack decisions
+3. ✅ **UI/UX Specified** - Front-end specifications with two-panel editor design
+4. ✅ **Epic 1 Stories Written** - 10 detailed user stories ready for development
+5. ✅ **Infrastructure Setup** - Docker environment completed by Alex (Infrastructure Agent)
+6. ✅ **Risk Assessment** - Quinn (QA) completed comprehensive risk profiles
+7. ✅ **Test Design** - 190+ test scenarios defined across all stories
+8. ✅ **Story Validation** - Sarah (PO) approved all stories for development
+
+**Immediate Next Steps:**
+1. **Complete Story 1.0** - Vertex AI setup (BLOCKING all other work)
+2. **Complete Story 1.1** - Finish infrastructure setup, create .env.example
+3. **Begin Parallel Development** - Stories 1.2-1.4 and 1.7-1.8 can proceed simultaneously
+4. **Implement Cost Controls** - Set up Vertex AI budget alerts ($1000/month cap)
+5. **Test Docker Integration** - Verify application code works with Alex's containers
 
 ### PM Handoff
 
@@ -369,29 +441,35 @@ This Project Brief outlines an Enterprise Translation & Transcription Platform d
 ### Competitive Differentiation
 
 **vs. Traditional Translation Services (SDL Trados, MemoQ)**
-- Complete workflow management beyond just translation
-- AI-powered with human verification vs purely manual
-- Media management and categorization built-in
-- Multi-tenant SaaS option vs only desktop software
+- Integrated text extraction from PDFs/images before translation
+- AI-powered with two-stage progressive editor for human verification
+- Real-time progress tracking with WebSocket updates
+- Multi-tenant SaaS with Supabase vs desktop-only software
+
+**vs. Document Processing Tools (Adobe Acrobat, ABBYY)**
+- Complete pipeline: extraction → translation → verification → export
+- Vertex AI Gemini 2.5 Pro for superior accuracy (>95% printed, >85% handwritten)
+- Built-in translation capabilities across 6 languages
+- Batch processing with intelligent token management
 
 **vs. AI Translation Tools (DeepL, Google Translate)**
-- Enterprise workflow management and quality assurance
-- White-label deployment options
-- Domain-specific customization and training
-- Human-in-the-loop verification system
+- Document structure preservation during translation
+- Enterprise workflow with Source Text Editor → Translation Editor stages
+- Glossary management with untranslatable terms
+- White-label deployment options for enterprises
 
 **vs. Content Management Systems (Adobe Experience Manager)**
-- Purpose-built for translation/transcription workflows
-- AI marketplace with provider flexibility
-- Significantly lower cost and complexity
-- Industry-specific workflow templates
+- Purpose-built for text extraction and translation workflows
+- Significantly lower cost with Supabase infrastructure ($75-85/month MVP)
+- Progressive complexity - start simple, scale to enterprise
+- Industry-specific templates for religious/educational content
 
 **Unique Value Propositions:**
-1. **Only platform offering both SaaS and white-label options**
-2. **AI provider marketplace preventing vendor lock-in**
-3. **Industry-specific workflow templates out-of-the-box**
-4. **Revenue sharing through AI API aggregation**
-5. **Complete media management integrated with processing**
+1. **Text extraction + translation in single platform** (no tool switching)
+2. **Two-panel progressive editor** for quality assurance
+3. **Vertex AI with 1M token input** (process entire books)
+4. **Real-time progress tracking** for long-running jobs
+5. **Multi-tenant with complete data isolation** via Supabase RLS
 
 **Key Priorities for PRD Development:**
 - Multi-tenant architecture supporting hundreds of organizations
