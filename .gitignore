@@ -309,6 +309,13 @@ pdf-temp/
 # Security - NEVER commit these
 # ============================================
 
+# Google Cloud / Vertex AI secrets
+vertex/secrets/
+*client_secret*.json
+*service_account*.json
+*credentials*.json
+*-a2dba7c4ed9c.json
+
 # Private keys
 *.key
 *.pem
